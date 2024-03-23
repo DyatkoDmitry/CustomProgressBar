@@ -20,8 +20,9 @@ class CustomProgressBarView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr), ValueAnimator.AnimatorUpdateListener {
 
-    private var progressValue = 0
-    private var intermediateProgress = 0f
+    private var topValue = 0
+    private var arcCorner = 0f
+    private var animatedValue = 0
 
     private val valueAnimator = ValueAnimator().apply {
         setDuration(1000)
@@ -29,26 +30,20 @@ class CustomProgressBarView @JvmOverloads constructor(
         addUpdateListener(this@CustomProgressBarView)
     }
 
-    private val paintBackCircle = Paint().apply{
+    private val paintBackCircle = Paint(Paint.ANTI_ALIAS_FLAG).apply{
         color = ContextCompat.getColor(context, R.color.blue_white)
         style = Paint.Style.STROKE
         strokeWidth = 35f
     }
 
-    private val paintProgressCircle = Paint().apply {
+    private val paintProgressCircle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context,R.color.blue)
         style = Paint.Style.STROKE
         strokeWidth = 60f
     }
 
-    /*private val paintButton = Paint().apply {
-        color = ContextCompat.getColor(context,R.color.blue)
-        style = Paint.Style.FILL
-    }*/
-
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.DEFAULT_BOLD
-        color = Color.BLACK
         textSize = 70F
         style = Paint.Style.FILL
     }
@@ -56,8 +51,8 @@ class CustomProgressBarView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        val desiredWidth = 600
-        val desiredHeight = 600
+        val desiredWidth = resources.getDimension(R.dimen.rootWidth).toInt()
+        val desiredHeight = resources.getDimension(R.dimen.rootHeight).toInt()
 
         val widthMode = MeasureSpec.getMode(widthMeasureSpec)
         val widthSize = MeasureSpec.getSize(widthMeasureSpec)
@@ -82,44 +77,31 @@ class CustomProgressBarView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        Log.d("TAG","onDraw")
-
         val rectF = RectF(40f,40f, 560f,560f)
-        //val button = RectF(0f,600f, 600f,800f)
-
-        //val degreeProgress = getDegreeFromProgress(progressValue)
 
         canvas.drawArc(rectF,270f,360f,false, paintBackCircle )
-        canvas.drawArc(rectF,270f,intermediateProgress,false, paintProgressCircle )
-        //canvas.drawRect(button, paintButton)
+        canvas.drawArc(rectF,270f,arcCorner,false, paintProgressCircle )
 
+        val textCenterX = (width/2f) - (textPaint.measureText(animatedValue.toString()))/2f
+        val textCenterY = (height/2f) + textPaint.textSize/4f
 
-
-       drawProgressText(canvas)
+        canvas.drawText(topValue.toString(),textCenterX,textCenterY, textPaint)
     }
 
-    private fun getDegreeFromProgress(progress:Int):Float{
+    private fun getCornerFromProgress(progress:Int):Float{
         return (360f / 100 ) * progress
     }
 
     fun setProgressValue(value:Int){
-        progressValue = value
-        Log.d("TAG","before valueanimator start")
-        valueAnimator.setIntValues(0,progressValue)
+        topValue = value
+
+        valueAnimator.setIntValues(0,topValue)
         valueAnimator.start()
-        Log.d("TAG","after valueanimator start")
-    }
-
-    private fun drawProgressText(canvas: Canvas){
-        val textCenterX = (width/2f) - (textPaint.measureText(progressValue.toString()))/2f
-        val textCenterY = (height/2f) + textPaint.textSize/4f
-
-        canvas.drawText(progressValue.toString(),textCenterX,textCenterY, textPaint)
     }
 
     override fun onAnimationUpdate(valueAnimator: ValueAnimator) {
-        val animatedValue = valueAnimator.getAnimatedValue() as Int
-        intermediateProgress = getDegreeFromProgress(animatedValue)
+        animatedValue = valueAnimator.getAnimatedValue() as Int
+        arcCorner = getCornerFromProgress(animatedValue)
         invalidate()
     }
 }
