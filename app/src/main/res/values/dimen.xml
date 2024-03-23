@@ -2,4 +2,11 @@
 <resources>
     <dimen name="rootWidth">300dp</dimen>
     <dimen name="rootHeight">300dp</dimen>
+    <dimen name="pointXLeft">30dp</dimen>
+    <dimen name="pointYTop">30dp</dimen>
+    <dimen name="pointXRight">270dp</dimen>
+    <dimen name="pointYBottom">270dp</dimen>
+    <dimen name="widthCircle">15dp</dimen>
+    <dimen name="widthAngle">30dp</dimen>
+    <dimen name="textSize">30dp</dimen>
 </resources>

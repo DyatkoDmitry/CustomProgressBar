@@ -3,17 +3,13 @@ package com.example.customprogressbar
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.NonCancellable.start
 import java.lang.Integer.min
 
 class CustomProgressBarView @JvmOverloads constructor(
@@ -21,32 +17,34 @@ class CustomProgressBarView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr), ValueAnimator.AnimatorUpdateListener {
 
     private var topValue = 0
-    private var arcCorner = 0f
+    private var arcAngle = 0f
     private var animatedValue = 0
 
-    private val valueAnimator = ValueAnimator().apply {
+    private val valueAnimator = ValueAnimator().apply{
         setDuration(1000)
         interpolator = AccelerateDecelerateInterpolator()
         addUpdateListener(this@CustomProgressBarView)
     }
 
-    private val paintBackCircle = Paint(Paint.ANTI_ALIAS_FLAG).apply{
-        color = ContextCompat.getColor(context, R.color.blue_white)
+    private val anglePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply{
+        color = ContextCompat.getColor(context, R.color.blue)
         style = Paint.Style.STROKE
-        strokeWidth = 35f
+        strokeWidth = resources.getDimension(R.dimen.widthAngle)
     }
 
-    private val paintProgressCircle = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context,R.color.blue)
+    private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context,R.color.pale_blue)
         style = Paint.Style.STROKE
-        strokeWidth = 60f
+        strokeWidth = resources.getDimension(R.dimen.widthCircle)
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.DEFAULT_BOLD
-        textSize = 70F
+        textSize = resources.getDimension(R.dimen.textSize)
         style = Paint.Style.FILL
     }
+
+    private val rootRectF = getRootRectF()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
@@ -77,22 +75,19 @@ class CustomProgressBarView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val rectF = RectF(40f,40f, 560f,560f)
-
-        canvas.drawArc(rectF,270f,360f,false, paintBackCircle )
-        canvas.drawArc(rectF,270f,arcCorner,false, paintProgressCircle )
+        canvas.drawArc(rootRectF,270f,360f,false, circlePaint )
+        canvas.drawArc(rootRectF,270f, arcAngle,false, anglePaint )
 
         val textCenterX = (width/2f) - (textPaint.measureText(animatedValue.toString()))/2f
         val textCenterY = (height/2f) + textPaint.textSize/4f
-
-        canvas.drawText(topValue.toString(),textCenterX,textCenterY, textPaint)
+        canvas.drawText(animatedValue.toString(),textCenterX, textCenterY, textPaint)
     }
 
-    private fun getCornerFromProgress(progress:Int):Float{
+    private fun getAngleFromProgress(progress:Int):Float{
         return (360f / 100 ) * progress
     }
 
-    fun setProgressValue(value:Int){
+    fun setTopValue(value:Int){
         topValue = value
 
         valueAnimator.setIntValues(0,topValue)
@@ -101,7 +96,15 @@ class CustomProgressBarView @JvmOverloads constructor(
 
     override fun onAnimationUpdate(valueAnimator: ValueAnimator) {
         animatedValue = valueAnimator.getAnimatedValue() as Int
-        arcCorner = getCornerFromProgress(animatedValue)
+        arcAngle = getAngleFromProgress(animatedValue)
         invalidate()
+    }
+
+    private fun getRootRectF():RectF{
+        val pointXLeft = resources.getDimension(R.dimen.pointXLeft)
+        val pointYTop = resources.getDimension(R.dimen.pointYTop)
+        val pointXRight = resources.getDimension(R.dimen.pointXRight)
+        val pointYBottom = resources.getDimension(R.dimen.pointYBottom)
+        return RectF(pointXLeft,pointYTop,pointXRight,pointYBottom)
     }
 }
